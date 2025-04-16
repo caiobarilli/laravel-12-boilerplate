@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🎯 Rodando os tests com Pest..."
+npm test
+
+# Pega os arquivos PHP adicionados no commit
+files=$(git diff --cached --name-only --diff-filter=ACM -- '*.php')
+
+if [ -n "$files" ]; then
+  echo "🎯 Formatando arquivos PHP com Pint..."
+  ./vendor/bin/pint $files -q
+
+  echo "🎯 Adicionando arquivos formatados ao Git..."
+  git add $files
+else
+  echo "✅ Nenhum arquivo PHP para formatar"
+fi
+
+echo "🎯 Rodando lint-staged..."
+npx --no-install lint-staged
+
+echo "🎯 Rodando o Duster lint..."
+./vendor/bin/duster lint --dirty
+
+echo "🎯 Rodando o Duster fix..."
+./vendor/bin/duster fix --dirty
